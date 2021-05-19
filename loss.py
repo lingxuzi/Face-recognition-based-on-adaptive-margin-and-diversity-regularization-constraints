@@ -24,14 +24,11 @@ class AdaptiveMarginLogits(nn.Module):
     def compute_adaptive_margin_loss(self, label):
         mm = self.margins[:, label]
         return torch.sigmoid(-mm.mean())
-        # Lm = -1* torch.sum(self.margins[:, label], dim=1)/self.num_classes + 1
-        # return Lm
     
     def compute_div_reg_loss(self):
         beta = 10
         
-        # k = 2.0 - torch.sigmoid((self.margins - 0.5) * beta)
-        k = 2.0 - torch.sigmoid((self.margins - 0.5) * beta)
+        k = 2.0 - torch.sigmoid((self.margins - 0.5) * beta).detach()
         
         # kernel_norm = l2_norm(self.kernel, axis=0)
         
@@ -54,7 +51,7 @@ class AdaptiveMarginLogits(nn.Module):
                 0, embeddings.size(0)), label].view(-1, 1)
         
         self.margins.data.clamp_(0, 1)
-        m = self.margins.data[:, label]
+        m = self.margins[:, label]
         
         cos_m = torch.cos(m).view(-1, 1)
         sin_m = torch.sin(m).view(-1, 1)
